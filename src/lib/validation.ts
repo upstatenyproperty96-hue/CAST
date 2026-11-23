@@ -13,3 +13,15 @@ export const newUploadSchema = z.object({
   postText: z.string().trim().max(1000).default(""),
 });
 export type NewUpload = z.infer<typeof newUploadSchema>;
+
+export const newClipSchema = z
+  .object({
+    sourceVideoId: z.uuid(),
+    title: z.string().trim().min(1).max(120),
+    start: z.number().min(0).max(1800),
+    end: z.number().min(0).max(1800),
+    postText: z.string().trim().max(1000).default(""),
+    topicId: z.number().int().positive().max(32767).nullable().default(null),
+  })
+  .refine((c) => c.end - c.start >= 1, { message: "Clips must be at least 1 second long." })
+  .refine((c) => c.end - c.start <= 600, { message: "Clips can be up to 10 minutes long." });

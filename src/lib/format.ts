@@ -21,3 +21,8 @@ export function ago(iso: string): string {
 export function thumbnail(playbackId: string | null, time = 0): string | null {
   return playbackId ? `https://image.mux.com/${encodeURIComponent(playbackId)}/thumbnail.webp?time=${time}&width=640` : null;
 }
+
+// Calendar day (UTC, YYYY-MM-DD) n days before now.
+export function dayAgo(n: number): string {
+  return new Date(Date.now() - n * 86400_000).toISOString().slice(0, 10);
+}

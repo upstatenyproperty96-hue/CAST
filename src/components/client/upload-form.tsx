@@ -16,8 +16,8 @@ function readDuration(file: File): Promise<number> {
   });
 }
 
-export function UploadForm({ topics }: { topics: Topic[] }) {
-  const [file, setFile] = useState<File | null>(null);
+export function UploadForm({ topics, initialFile = null }: { topics: Topic[]; initialFile?: File | null }) {
+  const [file, setFile] = useState<File | null>(initialFile);
   const [progress, setProgress] = useState<number | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [videoId, setVideoId] = useState<string | null>(null);
@@ -66,12 +66,12 @@ export function UploadForm({ topics }: { topics: Topic[] }) {
   const field = "w-full rounded-xl border border-neutral-300 px-3 py-2";
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
-      <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-neutral-300 p-8 text-center">
+      {initialFile ? null : <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-neutral-300 p-8 text-center">
         <span className="text-4xl">⬆</span>
         <span className="font-medium">{file ? file.name : "Choose a video from your phone or computer"}</span>
         <span className="text-sm text-neutral-500">MP4 or MOV, up to 30 minutes</span>
         <input type="file" accept="video/mp4,video/quicktime,video/*" className="sr-only" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-      </label>
+      </label>}
       <input name="title" required maxLength={120} placeholder="Title" className={field} />
       <textarea name="description" maxLength={5000} rows={3} placeholder="Description (optional)" className={field} />
       <textarea name="postText" maxLength={1000} rows={2} placeholder="Say something to your followers (optional)" className={field} />

@@ -2,14 +2,12 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { getUser } from "@/lib/supabase/server";
 import { compact, duration } from "@/lib/format";
+import { StudioNav } from "@/components/studio-nav";
 
 export default function LibraryPage() {
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-4">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Library</h1>
-        <Link href="/studio" className="rounded-full bg-blue-600 px-4 py-1.5 text-sm font-semibold text-white">Upload</Link>
-      </div>
+      <StudioNav active="/studio/library" />
       <Suspense fallback={<p className="text-neutral-500">Loading…</p>}><List /></Suspense>
     </div>
   );
@@ -32,9 +30,12 @@ async function List() {
             <p className="truncate font-medium">{v.title || "Untitled"}</p>
             <p className="text-sm text-neutral-500">{duration(v.duration_s)} · {compact(v.view_count)} views · {v.visibility}</p>
           </Link>
+          <div className="flex items-center gap-3">
+          {v.status === "ready" && <Link href={`/studio/clip/${v.id}`} className="text-sm text-blue-600">Clip</Link>}
           <span className={`rounded-full px-2 py-0.5 text-xs ${v.status === "ready" ? "bg-green-100 text-green-800" : v.status === "failed" ? "bg-red-100 text-red-800" : "bg-neutral-100"}`}>
             {statusLabel[v.status]}
           </span>
+          </div>
         </li>
       ))}
     </ul>
