@@ -9,7 +9,7 @@ export function BottomNav({ handle }: { handle?: string | null }) {
       <Link href="/studio" className={item} aria-label="Create">
         <span className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-xl text-white">+</span>
       </Link>
-      <Link href="/studio/library" className={item}><span className="text-xl">▶</span>Library</Link>
+      <Link href="/notifications" className={item}><span className="text-xl">♢</span>Alerts</Link>
       <Link href={handle ? `/u/${handle}` : "/login"} className={item}><span className="text-xl">◯</span>Profile</Link>
     </nav>
   );

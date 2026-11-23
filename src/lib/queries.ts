@@ -42,7 +42,15 @@ export async function getFeed(
     if (!ids.length) return [];
     query = query.in("video_id", ids);
   }
-  // For You (week 1): newest across everyone. Ranking by topics and engagement comes in week 2.
+  if (kind === "for-you") {
+    // Ranked in the database (see for_you_feed): engagement, your topics, people you follow, recency.
+    const { data: ranked } = await supabase.rpc("for_you_feed", { p_limit: 30, p_offset: 0 });
+    const ids = ((ranked ?? []) as { id: string }[]).map((r) => r.id);
+    if (!ids.length) return [];
+    const { data } = await supabase.from("posts").select(POST_FIELDS).in("id", ids);
+    const byId = new Map(((data ?? []) as unknown as FeedPost[]).map((p) => [p.id, p]));
+    return ids.flatMap((id) => byId.get(id) ?? []);
+  }
   const { data } = await query;
   return (data ?? []) as unknown as FeedPost[];
 }

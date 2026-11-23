@@ -5,7 +5,8 @@ import { getUser } from "@/lib/supabase/server";
 import { compact, duration, thumbnail } from "@/lib/format";
 import { Avatar } from "@/components/avatar";
 import { BottomNav } from "@/components/bottom-nav";
-import { toggleFollow } from "@/app/actions/social";
+import { toggleFollow, toggleBlock } from "@/app/actions/social";
+import { ReportButton } from "@/components/client/report-button";
 import { signOut } from "@/app/login/actions";
 
 type Tab = "videos" | "reposts" | "likes" | "playlists";
@@ -35,6 +36,9 @@ async function Profile({ params, searchParams }: PageProps<"/u/[handle]">) {
   if (!profile) notFound();
 
   const isMe = user?.id === profile.id;
+  const blocked = user && !isMe
+    ? !!(await supabase.from("blocks").select("blocked_id").eq("blocker_id", user.id).eq("blocked_id", profile.id).maybeSingle()).data
+    : false;
   const following = user && !isMe
     ? !!(await supabase.from("follows").select("follower_id").eq("follower_id", user.id).eq("followee_id", profile.id).maybeSingle()).data
     : false;
@@ -48,7 +52,16 @@ async function Profile({ params, searchParams }: PageProps<"/u/[handle]">) {
         <div className="-mt-10 flex items-end justify-between">
           <div className="rounded-full border-4 border-white"><Avatar profile={profile} size={80} /></div>
           {isMe ? (
-            <form action={signOut}><button className="rounded-full border border-neutral-300 px-4 py-1.5 text-sm">Sign out</button></form>
+            <div className="flex gap-2">
+              <Link href="/settings" className="rounded-full border border-neutral-300 px-4 py-1.5 text-sm">Edit profile</Link>
+              <form action={signOut}><button className="rounded-full border border-neutral-300 px-4 py-1.5 text-sm">Sign out</button></form>
+            </div>
+          ) : user && blocked ? (
+            <form action={toggleBlock}>
+              <input type="hidden" name="profileId" value={profile.id} />
+              <input type="hidden" name="blocked" value="1" />
+              <button className="rounded-full border border-red-300 px-4 py-1.5 text-sm text-red-700">Unblock</button>
+            </form>
           ) : user ? (
             <form action={toggleFollow}>
               <input type="hidden" name="profileId" value={profile.id} />
@@ -64,6 +77,16 @@ async function Profile({ params, searchParams }: PageProps<"/u/[handle]">) {
         <h1 className="mt-2 text-xl font-bold">{profile.display_name} {profile.is_verified && <span className="text-blue-600">✔</span>}</h1>
         <p className="text-neutral-500">@{profile.handle}</p>
         {profile.bio && <p className="mt-2 whitespace-pre-wrap">{profile.bio}</p>}
+        {user && !isMe && !blocked && (
+          <div className="mt-1 flex gap-3 text-xs text-neutral-500">
+            <form action={toggleBlock}>
+              <input type="hidden" name="profileId" value={profile.id} />
+              <input type="hidden" name="blocked" value="0" />
+              <button>Block</button>
+            </form>
+            <ReportButton target="user" targetId={profile.id} />
+          </div>
+        )}
         <p className="mt-2 text-sm text-neutral-600">
           <b className="text-neutral-900">{compact(profile.following_count)}</b> Following · <b className="text-neutral-900">{compact(profile.follower_count)}</b> Followers
         </p>

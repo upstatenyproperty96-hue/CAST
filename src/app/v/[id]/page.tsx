@@ -7,6 +7,8 @@ import { compact } from "@/lib/format";
 import { Avatar } from "@/components/avatar";
 import { Player } from "@/components/client/player";
 import { toggleReaction } from "@/app/actions/social";
+import { Comments } from "@/components/comments";
+import { ReportButton } from "@/components/client/report-button";
 
 export default function VideoPage(props: PageProps<"/v/[id]">) {
   return (
@@ -30,16 +32,17 @@ async function Video({ params }: PageProps<"/v/[id]">) {
   if (!video) notFound();
   const creator = video.creator as unknown as { handle: string; display_name: string; avatar_url: string | null; is_verified: boolean };
 
-  const { data: post } = await supabase.from("posts").select("id, like_count, repost_count, comment_count").eq("video_id", id).limit(1).maybeSingle();
+  const { data: post } = await supabase.from("posts").select("id, author_id, like_count, repost_count, comment_count").eq("video_id", id).limit(1).maybeSingle();
   const mine = user && post
     ? (await supabase.from("reactions").select("kind").eq("post_id", post.id).eq("user_id", user.id)).data?.map((r) => r.kind) ?? []
     : [];
 
   return (
+    <>
     <div className="relative mx-auto flex min-h-dvh max-w-xl items-center justify-center">
       <Link href="/" className="absolute left-3 top-3 z-10 rounded-full bg-black/50 px-3 py-1 text-sm">← Back</Link>
       {video.status === "ready" && video.mux_playback_id ? (
-        <Player playbackId={video.mux_playback_id} title={video.title} portrait={video.aspect === "portrait"} />
+        <Player videoId={video.id} playbackId={video.mux_playback_id} title={video.title} portrait={video.aspect === "portrait"} />
       ) : (
         <p className="text-neutral-400">{video.status === "failed" ? "This video couldn't be processed." : "Processing… check back in a minute."}</p>
       )}
@@ -77,7 +80,10 @@ async function Video({ params }: PageProps<"/v/[id]">) {
             Watch full video
           </Link>
         )}
+        {post && user && user.id !== post.author_id && <ReportButton target="post" targetId={post.id} className="ml-3 text-xs text-neutral-300" />}
       </div>
     </div>
+    {post && <Comments postId={post.id} postAuthorId={post.author_id} />}
+    </>
   );
 }

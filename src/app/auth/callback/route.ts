@@ -9,8 +9,12 @@ export async function GET(request: NextRequest) {
   const next = safeNextPath(searchParams.get("next"));
   if (code) {
     const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return NextResponse.redirect(new URL(next, origin));
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error && data.user) {
+      // New users pick their topics first so For You has something to go on.
+      const { data: profile } = await supabase.from("profiles").select("onboarded").eq("id", data.user.id).maybeSingle();
+      return NextResponse.redirect(new URL(profile && !profile.onboarded ? "/onboarding" : next, origin));
+    }
   }
   return NextResponse.redirect(new URL("/login?error=signin", origin));
 }

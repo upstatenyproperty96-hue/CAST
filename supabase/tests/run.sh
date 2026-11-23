@@ -13,6 +13,6 @@ RUN "$PG/pg_ctl -D $DIR/data -o '-p $PORT -k $DIR' -l $DIR/log -w start >/dev/nu
 trap 'RUN "$PG/pg_ctl -D $DIR/data -m fast stop >/dev/null"; rm -rf "$DIR"' EXIT
 PSQL="psql -h $DIR -p $PORT -U postgres -v ON_ERROR_STOP=1 -q -X"
 $PSQL -f tests/supabase_stub.sql
-for f in migrations/*.sql; do $PSQL -f "$f"; done
 $PSQL -f tests/grants.sql
+for f in migrations/*.sql; do $PSQL -f "$f"; done
 $PSQL -t -f tests/rls_test.sql 2>&1 | grep -E 'ok -|FAILED|ERROR' | sed 's/^.*NOTICE:  //; s/^psql:[^ ]* //'

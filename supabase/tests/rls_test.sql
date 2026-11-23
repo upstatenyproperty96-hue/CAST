@@ -173,7 +173,41 @@ do $$ begin
 exception when insufficient_privilege then raise notice 'ok - blocked users cannot follow the blocker';
 end $$;
 
+-- views and feed ------------------------------------------------------------------
+select pg_temp.as_server();
+update public.videos set duration_s = 60 where id = '10000000-0000-0000-0000-000000000001';
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000b');
+select public.record_view('10000000-0000-0000-0000-000000000001', '40000000-0000-0000-0000-000000000001', 1, false);
+select public.record_view('10000000-0000-0000-0000-000000000001', '40000000-0000-0000-0000-000000000001', 9999, true);
+select pg_temp.as_server();
+select pg_temp.check((select view_count = 1 from public.videos where id = '10000000-0000-0000-0000-000000000001'), 'a view counts once after 3 seconds');
+select pg_temp.check((select watched_s = 60 from public.view_events where session_id = '40000000-0000-0000-0000-000000000001'), 'watch time cannot exceed the video length');
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000b');
+select public.record_view('10000000-0000-0000-0000-000000000001', '40000000-0000-0000-0000-000000000002', 30, false);
+select public.record_view('10000000-0000-0000-0000-000000000002', '40000000-0000-0000-0000-000000000003', 30, false);
+select pg_temp.as_server();
+select pg_temp.check((select view_count = 1 from public.videos where id = '10000000-0000-0000-0000-000000000001'), 'replaying right away does not inflate views');
+select pg_temp.check((select count(*) = 0 from public.view_events where video_id = '10000000-0000-0000-0000-000000000002'), 'views on unpublished videos are ignored');
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000b');
+do $$ begin
+  perform public.rollup_video_stats(current_date);
+  raise exception 'FAILED: user ran stats roll-up';
+exception when insufficient_privilege then raise notice 'ok - only the server can roll up stats';
+end $$;
+select pg_temp.check((select count(*) >= 1 from public.for_you_feed(10, 0)), 'For You returns posts');
+select pg_temp.check((select count(*) = 0 from public.for_you_feed(10, 0) f where f.video_id = '10000000-0000-0000-0000-000000000002'), 'For You never shows unpublished videos');
+
+-- storage ---------------------------------------------------------------------------
+insert into storage.objects (bucket_id, name) values ('profile-images', '00000000-0000-0000-0000-00000000000b/avatar.png');
+select pg_temp.check(true, 'users can upload their own profile photo');
+do $$ begin
+  insert into storage.objects (bucket_id, name) values ('profile-images', '00000000-0000-0000-0000-00000000000a/avatar.png');
+  raise exception 'FAILED: overwrote someone else''s photo';
+exception when insufficient_privilege then raise notice 'ok - cannot upload into someone else''s photo folder';
+end $$;
+
 -- reports ------------------------------------------------------------------------------
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000c');
 insert into public.reports (reporter_id, user_id, reason) values ('00000000-0000-0000-0000-00000000000c', '00000000-0000-0000-0000-00000000000a', 'spam');
 select pg_temp.check((select count(*) = 0 from public.reports), 'reporters cannot read the report queue');
 

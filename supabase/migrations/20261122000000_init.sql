@@ -45,8 +45,9 @@ create table public.profiles (
 create or replace function public.protect_profile_columns()
 returns trigger language plpgsql as $$
 begin
-  -- pg_trigger_depth() > 1 means a counter trigger (follows) is making this change.
-  if auth.role() <> 'service_role' and pg_trigger_depth() <= 1 then
+  -- Only direct edits by app users are restricted. Trusted database functions
+  -- (counters, view tracking) run as the owner role and pass through.
+  if current_user in ('anon', 'authenticated') then
     new.is_verified := old.is_verified;
     new.is_admin := old.is_admin;
     new.follower_count := old.follower_count;
@@ -214,7 +215,9 @@ create index videos_source_idx on public.videos (source_video_id);
 create or replace function public.protect_video_columns()
 returns trigger language plpgsql as $$
 begin
-  if auth.role() <> 'service_role' and pg_trigger_depth() <= 1 then
+  -- Only direct edits by app users are restricted. Trusted database functions
+  -- (counters, view tracking) run as the owner role and pass through.
+  if current_user in ('anon', 'authenticated') then
     new.creator_id := old.creator_id;
     new.status := old.status;
     new.mux_upload_id := old.mux_upload_id;
