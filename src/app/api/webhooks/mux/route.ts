@@ -5,6 +5,7 @@ import { mux, MAX_DURATION_S } from "@/lib/mux";
 // Mux calls this when an upload becomes an asset, finishes processing, or fails.
 // The signature check proves the request really came from Mux.
 export async function POST(request: NextRequest) {
+  if (!process.env.MUX_WEBHOOK_SECRET) return NextResponse.json({ error: "Webhook not configured" }, { status: 503 });
   const raw = await request.text();
   let event;
   try {
