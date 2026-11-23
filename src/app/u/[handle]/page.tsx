@@ -158,7 +158,7 @@ async function TabContent({ tab, profileId }: { tab: Tab; profileId: string }) {
     <ul className="divide-y divide-neutral-200">
       {playlists.map((p) => (
         <li key={p.id} className="px-4 py-3">
-          <p className="font-medium">{p.title}</p>
+          <Link href={`/p/${p.id}`} className="font-medium">{p.title}</Link>
           <p className="text-sm text-neutral-500">{(p.playlist_items as unknown as { count: number }[])[0]?.count ?? 0} videos</p>
         </li>
       ))}

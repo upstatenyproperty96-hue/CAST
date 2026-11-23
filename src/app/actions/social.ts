@@ -102,3 +102,35 @@ export async function markNotificationsRead() {
   await supabase.from("notifications").update({ read_at: new Date().toISOString() }).eq("user_id", user.id).is("read_at", null);
   revalidatePath("/notifications");
 }
+
+const playlistSchema = z.object({ title: z.string().trim().min(1).max(100), videoId: z.uuid().nullable() });
+
+export async function createPlaylist(formData: FormData) {
+  const { supabase, user } = await getUser();
+  if (!user) return;
+  const parsed = playlistSchema.safeParse({ title: formData.get("title"), videoId: formData.get("videoId") || null });
+  if (!parsed.success) return;
+  const { data: pl } = await supabase.from("playlists").insert({ owner_id: user.id, title: parsed.data.title }).select("id").single();
+  if (pl && parsed.data.videoId) {
+    await supabase.from("playlist_items").insert({ playlist_id: pl.id, video_id: parsed.data.videoId, position: 1 });
+  }
+  revalidatePath("/v/[id]", "page");
+}
+
+export async function addToPlaylist(formData: FormData) {
+  const { supabase, user } = await getUser();
+  if (!user) return;
+  const playlistId = id.parse(formData.get("playlistId"));
+  const videoId = id.parse(formData.get("videoId"));
+  const { count } = await supabase.from("playlist_items").select("video_id", { count: "exact", head: true }).eq("playlist_id", playlistId);
+  await supabase.from("playlist_items").insert({ playlist_id: playlistId, video_id: videoId, position: (count ?? 0) + 1 });
+  revalidatePath("/v/[id]", "page");
+}
+
+export async function removeFromPlaylist(formData: FormData) {
+  const { supabase, user } = await getUser();
+  if (!user) return;
+  await supabase.from("playlist_items").delete()
+    .eq("playlist_id", id.parse(formData.get("playlistId"))).eq("video_id", id.parse(formData.get("videoId")));
+  revalidatePath("/p/[id]", "page");
+}

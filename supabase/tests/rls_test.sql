@@ -211,4 +211,24 @@ select pg_temp.as_user('00000000-0000-0000-0000-00000000000c');
 insert into public.reports (reporter_id, user_id, reason) values ('00000000-0000-0000-0000-00000000000c', '00000000-0000-0000-0000-00000000000a', 'spam');
 select pg_temp.check((select count(*) = 0 from public.reports), 'reporters cannot read the report queue');
 
+-- invites and moderation ---------------------------------------------------------------
+select pg_temp.as_server();
+insert into public.invite_codes (code, max_uses) values ('CASTBETA1', 1);
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000b');
+update public.profiles set beta_access = true where id = '00000000-0000-0000-0000-00000000000b';
+select pg_temp.check((select not beta_access from public.profiles where id = '00000000-0000-0000-0000-00000000000b'), 'users cannot grant themselves beta access');
+select pg_temp.check((select count(*) = 0 from public.invite_codes), 'invite codes are hidden from users');
+select pg_temp.check(not public.redeem_invite('WRONGCODE'), 'a wrong invite code fails');
+select pg_temp.check(public.redeem_invite('castbeta1'), 'a valid invite code works');
+select pg_temp.check((select beta_access from public.profiles where id = '00000000-0000-0000-0000-00000000000b'), 'redeeming grants beta access');
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000a');
+select pg_temp.check(not public.redeem_invite('CASTBETA1'), 'a used-up invite code fails');
+select pg_temp.as_server();
+update public.videos set removed_at = now(), removed_reason = 'test' where id = '10000000-0000-0000-0000-000000000001';
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000b');
+select pg_temp.check((select count(*) = 0 from public.videos where id = '10000000-0000-0000-0000-000000000001'), 'removed videos disappear for viewers');
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000a');
+update public.videos set removed_at = null where id = '10000000-0000-0000-0000-000000000001';
+select pg_temp.check((select removed_at is not null from public.videos where id = '10000000-0000-0000-0000-000000000001'), 'creators cannot undo a takedown');
+
 rollback;

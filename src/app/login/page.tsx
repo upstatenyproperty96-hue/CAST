@@ -17,6 +17,9 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
       <Suspense fallback={null}>
         <LoginForms searchParams={searchParams} />
       </Suspense>
+      <p className="text-center text-xs text-neutral-500">
+        By continuing you agree to the <a href="/legal/terms" className="underline">Terms</a> and <a href="/legal/privacy" className="underline">Privacy Policy</a>.
+      </p>
     </main>
   );
 }

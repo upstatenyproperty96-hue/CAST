@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getUser } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { profileFlags } from "@/lib/access";
 import { mux } from "@/lib/mux";
 import { publicEnv } from "@/lib/env";
 import { newUploadSchema } from "@/lib/validation";
@@ -10,8 +11,11 @@ const UPLOADS_PER_HOUR = 20;
 // Starts an upload: creates the video record and a one-time Mux upload URL.
 // The browser or phone then sends the file straight to Mux, never through our server.
 export async function POST(request: NextRequest) {
-  const { user } = await getUser();
+  const { supabase, user } = await getUser();
   if (!user) return NextResponse.json({ error: "Sign in to upload." }, { status: 401 });
+  if (!(await profileFlags(supabase, user.id)).betaAccess) {
+    return NextResponse.json({ error: "Publishing is invite-only during the beta. Enter your invite code first." }, { status: 403 });
+  }
 
   const body = await request.json().catch(() => null);
   const parsed = newUploadSchema.safeParse(body);

@@ -8,6 +8,7 @@ import { Avatar } from "@/components/avatar";
 import { Player } from "@/components/client/player";
 import { toggleReaction } from "@/app/actions/social";
 import { Comments } from "@/components/comments";
+import { SaveToPlaylist } from "@/components/save-to-playlist";
 import { ReportButton } from "@/components/client/report-button";
 
 export default function VideoPage(props: PageProps<"/v/[id]">) {
@@ -83,6 +84,7 @@ async function Video({ params }: PageProps<"/v/[id]">) {
         {post && user && user.id !== post.author_id && <ReportButton target="post" targetId={post.id} className="ml-3 text-xs text-neutral-300" />}
       </div>
     </div>
+    {video.status === "ready" && <SaveToPlaylist videoId={video.id} />}
     {post && <Comments postId={post.id} postAuthorId={post.author_id} />}
     </>
   );

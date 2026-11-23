@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getUser } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { profileFlags } from "@/lib/access";
 import { mux } from "@/lib/mux";
 import { newClipSchema } from "@/lib/validation";
 
@@ -9,8 +10,11 @@ const CLIPS_PER_HOUR = 30;
 // Cuts a clip (or a trimmed version) from one of the creator's own videos.
 // Mux copies the chosen time range into a new video; the clip links back to its source.
 export async function POST(request: NextRequest) {
-  const { user } = await getUser();
+  const { supabase, user } = await getUser();
   if (!user) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
+  if (!(await profileFlags(supabase, user.id)).betaAccess) {
+    return NextResponse.json({ error: "Publishing is invite-only during the beta. Enter your invite code first." }, { status: 403 });
+  }
 
   const parsed = newClipSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid clip." }, { status: 400 });
