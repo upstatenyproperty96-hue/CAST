@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cast
 
-## Getting Started
+Cast Social (watch, follow, talk) and Cast Studio (record, upload, publish) in one web app.
+The web app works on phones (add it to your home screen) and desktop. Native iPhone and Android apps come after the beta.
 
-First, run the development server:
+## How it fits together
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+| Part | What it does |
+| --- | --- |
+| `src/app` | Pages: feed (`/`), topics, profiles (`/u/handle`), player (`/v/id`), Studio (`/studio`) |
+| `src/app/api/uploads` | Starts an upload: checks who you are, creates the video record, returns a one-time Mux upload link |
+| `src/app/api/webhooks/mux` | Mux tells us when a video is ready; we publish it to the feed |
+| `supabase/migrations` | The database: tables, security rules (Row Level Security), counters |
+| `supabase/tests` | Security tests proving users can only see and change what they should |
+
+## Security model
+
+- Browsers and phones only hold the public Supabase key. Row Level Security in the database decides what each user can read or change.
+- Secret keys (Supabase service role, Mux) live only in server environment settings, never in the code or the browser.
+- Video files go straight from the creator's device to Mux through a one-time upload link.
+- Mux webhooks are verified with a signing secret before we act on them.
+
+## Running checks
+
+```
+npm install
+npm run check      # lint, type check, and database security tests
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The database tests need PostgreSQL 16 installed locally.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Setting up (one time)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Create a Supabase project, then run `supabase/migrations/*.sql` in its SQL editor (or with the Supabase CLI).
+2. In Supabase, turn on Email sign-in, and Google and Apple if wanted. Set the site URL and add `<site>/auth/callback` as a redirect URL.
+3. Create a Mux account, an API access token (Mux Video read and write), and a webhook pointing at `<site>/api/webhooks/mux`.
+4. Copy `.env.example` to `.env.local` (and into Vercel's environment settings) with the real values.
+5. `npm run dev` for local, or deploy to Vercel.
