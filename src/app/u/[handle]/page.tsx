@@ -40,6 +40,7 @@ async function Profile({ params, searchParams }: PageProps<"/u/[handle]">) {
   const blocked = user && !isMe
     ? !!(await supabase.from("blocks").select("blocked_id").eq("blocker_id", user.id).eq("blocked_id", profile.id).maybeSingle()).data
     : false;
+  const { data: liveStream } = await supabase.from("live_streams").select("status").eq("creator_id", profile.id).maybeSingle();
   const following = user && !isMe
     ? !!(await supabase.from("follows").select("follower_id").eq("follower_id", user.id).eq("followee_id", profile.id).maybeSingle()).data
     : false;
@@ -82,6 +83,9 @@ async function Profile({ params, searchParams }: PageProps<"/u/[handle]">) {
           )}
         </div>
         <h1 className="mt-2 text-xl font-bold">{profile.display_name} {profile.is_verified && <span className="text-blue-600">✔</span>}</h1>
+        {liveStream?.status === "active" && (
+          <Link href={`/live/${profile.handle}`} className="mt-1 inline-block rounded bg-red-600 px-2 py-0.5 text-sm font-bold text-white">● LIVE now · Watch</Link>
+        )}
         <p className="text-neutral-500">@{profile.handle}</p>
         {profile.bio && <p className="mt-2 whitespace-pre-wrap">{profile.bio}</p>}
         {user && !isMe && !blocked && (

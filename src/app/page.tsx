@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { getUser } from "@/lib/supabase/server";
+import { createClient, getUser } from "@/lib/supabase/server";
+import { Avatar } from "@/components/avatar";
 import { getFeed, type FeedKind } from "@/lib/queries";
 import { PostCard } from "@/components/post-card";
 import { BottomNav } from "@/components/bottom-nav";
@@ -23,6 +24,7 @@ export default function Home({ searchParams }: PageProps<"/">) {
           <FeedTabs searchParams={searchParams} />
         </Suspense>
       </header>
+      <Suspense fallback={null}><LiveNow /></Suspense>
       <Suspense fallback={<p className="p-6 text-center text-neutral-500">Loading…</p>}>
         <Feed searchParams={searchParams} />
       </Suspense>
@@ -61,6 +63,28 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/">["searchPara
   const posts = await getFeed(supabase, kind, { userId: user?.id });
   if (!posts.length) return <p className="p-6 text-center text-neutral-500">Nothing here yet. Be the first to post.</p>;
   return <>{posts.map((p) => <PostCard key={p.id} post={p} />)}</>;
+}
+
+// Creators streaming right now, newest first.
+async function LiveNow() {
+  const supabase = await createClient();
+  const { data } = await supabase.from("live_streams")
+    .select("title, creator:profiles!live_streams_creator_id_fkey(handle, display_name, avatar_url)")
+    .eq("status", "active").order("started_at", { ascending: false }).limit(12);
+  type Row = { title: string; creator: { handle: string; display_name: string; avatar_url: string | null } };
+  const rows = (data ?? []) as unknown as Row[];
+  if (!rows.length) return null;
+  return (
+    <div className="flex gap-4 overflow-x-auto border-b border-neutral-100 px-4 py-3">
+      {rows.map((r) => (
+        <Link key={r.creator.handle} href={`/live/${r.creator.handle}`} className="flex w-16 shrink-0 flex-col items-center gap-1 text-xs">
+          <span className="rounded-full p-0.5 ring-2 ring-red-600"><Avatar profile={r.creator} size={52} /></span>
+          <span className="w-full truncate text-center">{r.creator.display_name}</span>
+          <span className="-mt-1 rounded bg-red-600 px-1 text-[10px] font-bold text-white">LIVE</span>
+        </Link>
+      ))}
+    </div>
+  );
 }
 
 async function MessagesLink() {

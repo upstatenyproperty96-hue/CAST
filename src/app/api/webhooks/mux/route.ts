@@ -18,13 +18,38 @@ export async function POST(request: NextRequest) {
 
   switch (event.type) {
     case "video.asset.created": {
-      const videoId = event.data.passthrough;
-      if (videoId) await admin.from("videos").update({ mux_asset_id: event.data.id, status: "processing" }).eq("id", videoId);
+      const asset = event.data;
+      if (asset.live_stream_id) {
+        // A live stream started recording: make the replay video now so it's ready when the stream ends.
+        const { data: stream } = await admin.from("live_streams").select("creator_id, title").eq("mux_live_stream_id", asset.live_stream_id).maybeSingle();
+        if (!stream) break;
+        await admin.from("videos").upsert({
+          creator_id: stream.creator_id, title: stream.title || "Live replay", status: "processing", visibility: "public",
+          rights_confirmed: true, from_live: true, mux_asset_id: asset.id,
+        }, { onConflict: "mux_asset_id", ignoreDuplicates: true });
+        break;
+      }
+      const videoId = asset.passthrough;
+      if (videoId) await admin.from("videos").update({ mux_asset_id: asset.id, status: "processing" }).eq("id", videoId);
+      break;
+    }
+    case "video.live_stream.active":
+    case "video.live_stream.idle":
+    case "video.live_stream.disconnected": {
+      const active = event.type === "video.live_stream.active";
+      await admin.from("live_streams").update({
+        status: active ? "active" : "idle",
+        ...(active ? { started_at: new Date().toISOString() } : {}),
+        updated_at: new Date().toISOString(),
+      }).eq("mux_live_stream_id", event.data.id);
       break;
     }
     case "video.asset.ready": {
       const asset = event.data;
-      const videoId = asset.passthrough;
+      // Replays are found by their Mux asset id; uploads and clips carry our video id.
+      const videoId = asset.live_stream_id
+        ? (await admin.from("videos").select("id").eq("mux_asset_id", asset.id).maybeSingle()).data?.id
+        : asset.passthrough;
       if (!videoId) break;
       const duration = asset.duration ?? 0;
       if (duration > MAX_DURATION_S) {
