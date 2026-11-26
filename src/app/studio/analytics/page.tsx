@@ -71,8 +71,8 @@ async function Inner({ searchParams }: PageProps<"/studio/analytics">) {
       <div className="rounded-2xl border border-neutral-200 p-4">
         <p className="mb-2 text-sm font-medium">Views per day</p>
         <svg viewBox={`0 0 ${W} ${H}`} className="h-36 w-full" preserveAspectRatio="none" role="img" aria-label={`Views per day over the last ${days} days`}>
-          <polyline points={`0,${H} ${pts} ${W},${H}`} fill="#2563eb" fillOpacity="0.12" stroke="none" />
-          <polyline points={pts} fill="none" stroke="#2563eb" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+          <polyline points={`0,${H} ${pts} ${W},${H}`} fill="#12b981" fillOpacity="0.12" stroke="none" />
+          <polyline points={pts} fill="none" stroke="#12b981" strokeWidth="2" vectorEffect="non-scaling-stroke" />
         </svg>
       </div>
       <div className="rounded-2xl border border-neutral-200 p-4">

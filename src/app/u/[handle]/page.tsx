@@ -52,7 +52,7 @@ async function Profile({ params, searchParams }: PageProps<"/u/[handle]">) {
 
   return (
     <>
-      <div className="relative h-36 bg-gradient-to-br from-blue-600 via-indigo-700 to-fuchsia-700 sm:h-44" style={profile.banner_url ? { backgroundImage: `url(${JSON.stringify(profile.banner_url)})`, backgroundSize: "cover" } : undefined} />
+      <div className="relative h-36 bg-gradient-to-br from-emerald-500 via-teal-700 to-cyan-950 sm:h-44" style={profile.banner_url ? { backgroundImage: `url(${JSON.stringify(profile.banner_url)})`, backgroundSize: "cover" } : undefined} />
       <div className="px-4">
         <div className="-mt-12 flex items-end justify-between">
           <div className={`relative z-[1] rounded-full border-4 border-canvas ${liveStream?.status === "active" ? "ring-2 ring-red-600" : ""}`}><Avatar profile={profile} size={92} /></div>
