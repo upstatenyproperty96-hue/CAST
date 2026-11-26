@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getUser } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { profileFlags } from "@/lib/access";
-import { mux } from "@/lib/mux";
+import { autoCaptions, mux } from "@/lib/mux";
 import { publicEnv } from "@/lib/env";
 import { newUploadSchema } from "@/lib/validation";
 
@@ -67,6 +67,8 @@ export async function POST(request: NextRequest) {
       new_asset_settings: {
         playback_policies: ["public"],
         max_resolution_tier: "1080p",
+        // No url: the uploaded file is the input. Captions are generated from its audio.
+        inputs: [{ generated_subtitles: autoCaptions(input.captionLanguage) }],
         passthrough: video.id,
         meta: { title: input.title, creator_id: user.id },
       },

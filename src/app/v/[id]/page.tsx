@@ -10,6 +10,7 @@ import { toggleReaction } from "@/app/actions/social";
 import { Comments } from "@/components/comments";
 import { SaveToPlaylist } from "@/components/save-to-playlist";
 import { ReportButton } from "@/components/client/report-button";
+import { ShareButton } from "@/components/client/share-button";
 
 export default function VideoPage(props: PageProps<"/v/[id]">) {
   return (
@@ -27,7 +28,7 @@ async function Video({ params }: PageProps<"/v/[id]">) {
   const { supabase, user } = await getUser();
   const { data: video } = await supabase
     .from("videos")
-    .select("id, title, description, status, aspect, mux_playback_id, source_video_id, creator:profiles!videos_creator_id_fkey(handle, display_name, avatar_url, is_verified)")
+    .select("id, title, description, status, aspect, visibility, mux_playback_id, source_video_id, creator:profiles!videos_creator_id_fkey(handle, display_name, avatar_url, is_verified)")
     .eq("id", id)
     .maybeSingle();
   if (!video) notFound();
@@ -66,6 +67,9 @@ async function Video({ params }: PageProps<"/v/[id]">) {
             );
           })}
           <span className="flex flex-col items-center"><span className="text-2xl">💬</span>{compact(post.comment_count)}</span>
+          {video.visibility !== "followers" && (
+            <ShareButton path={`/v/${video.id}`} title={video.title || "Cast video"} className="flex flex-col items-center text-sm" />
+          )}
         </div>
       )}
 

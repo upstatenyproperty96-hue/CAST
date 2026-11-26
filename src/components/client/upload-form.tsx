@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { UpChunk } from "@mux/upchunk";
+import { CAPTION_LANGUAGES } from "@/lib/validation";
 
 type Topic = { id: number; name: string };
 const MAX_BYTES = 8 * 1024 * 1024 * 1024; // 8 GB is plenty for 30 minutes at 1080p
@@ -42,6 +43,7 @@ export function UploadForm({ topics, initialFile = null }: { topics: Topic[]; in
         topicId: topic > 0 ? topic : null,
         postText: form.get("postText") ?? "",
         rightsConfirmed: form.get("rights") === "on",
+        captionLanguage: form.get("captionLanguage") ?? "en",
       }),
     });
     const data = await res.json().catch(() => ({}));
@@ -86,6 +88,13 @@ export function UploadForm({ topics, initialFile = null }: { topics: Topic[]; in
           <option value="unlisted">Unlisted</option>
         </select>
       </div>
+      <label className="block text-sm">
+        <span className="font-medium">Spoken language</span>
+        <span className="block text-neutral-500">Captions are added automatically in this language.</span>
+        <select name="captionLanguage" className={field} defaultValue="en">
+          {Object.entries(CAPTION_LANGUAGES).map(([code, name]) => <option key={code} value={code}>{name}</option>)}
+        </select>
+      </label>
       <label className="flex items-start gap-2 text-sm">
         <input type="checkbox" name="rights" required className="mt-1" />
         I made this video or have the rights to post it.
