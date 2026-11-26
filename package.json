@@ -12,6 +12,7 @@
     "check": "npm run lint && npm run typecheck && npm run test:db"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.14.0",
     "@mux/mux-node": "^15.5.0",
     "@mux/mux-player-react": "^3.14.1",
     "@mux/upchunk": "^3.5.0",
