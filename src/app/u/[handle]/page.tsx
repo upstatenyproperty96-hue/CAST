@@ -6,6 +6,7 @@ import { compact, duration, thumbnail } from "@/lib/format";
 import { Avatar } from "@/components/avatar";
 import { BottomNav } from "@/components/bottom-nav";
 import { toggleFollow, toggleBlock } from "@/app/actions/social";
+import { startConversation } from "@/app/actions/messages";
 import { ReportButton } from "@/components/client/report-button";
 import { signOut } from "@/app/login/actions";
 
@@ -63,13 +64,19 @@ async function Profile({ params, searchParams }: PageProps<"/u/[handle]">) {
               <button className="rounded-full border border-red-300 px-4 py-1.5 text-sm text-red-700">Unblock</button>
             </form>
           ) : user ? (
-            <form action={toggleFollow}>
-              <input type="hidden" name="profileId" value={profile.id} />
-              <input type="hidden" name="following" value={following ? "1" : "0"} />
-              <button className={`rounded-full px-5 py-1.5 text-sm font-semibold ${following ? "border border-neutral-300" : "bg-blue-600 text-white"}`}>
-                {following ? "Following" : "Follow"}
-              </button>
-            </form>
+            <div className="flex gap-2">
+              <form action={startConversation}>
+                <input type="hidden" name="profileId" value={profile.id} />
+                <button className="rounded-full border border-neutral-300 px-4 py-1.5 text-sm">Message</button>
+              </form>
+              <form action={toggleFollow}>
+                <input type="hidden" name="profileId" value={profile.id} />
+                <input type="hidden" name="following" value={following ? "1" : "0"} />
+                <button className={`rounded-full px-5 py-1.5 text-sm font-semibold ${following ? "border border-neutral-300" : "bg-blue-600 text-white"}`}>
+                  {following ? "Following" : "Follow"}
+                </button>
+              </form>
+            </div>
           ) : (
             <Link href="/login" className="rounded-full bg-blue-600 px-5 py-1.5 text-sm font-semibold text-white">Follow</Link>
           )}
