@@ -15,4 +15,6 @@ PSQL="psql -h $DIR -p $PORT -U postgres -v ON_ERROR_STOP=1 -q -X"
 $PSQL -f tests/supabase_stub.sql
 $PSQL -f tests/grants.sql
 for f in migrations/*.sql; do $PSQL -f "$f"; done
-$PSQL -t -f tests/rls_test.sql 2>&1 | grep -E 'ok -|FAILED|ERROR' | sed 's/^.*NOTICE:  //; s/^psql:[^ ]* //'
+for t in tests/*_test.sql; do
+  $PSQL -t -f "$t" 2>&1 | grep -E 'ok -|FAILED|ERROR' | sed 's/^.*NOTICE:  //; s/^psql:[^ ]* //'
+done
