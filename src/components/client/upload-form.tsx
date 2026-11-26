@@ -6,14 +6,31 @@ type Topic = { id: number; name: string };
 const MAX_BYTES = 8 * 1024 * 1024 * 1024; // 8 GB is plenty for 30 minutes at 1080p
 const MAX_SECONDS = 30 * 60;
 
+// Reads the video's length in the browser. Phones (iPhone Safari especially) sometimes never
+// report it, so give up after a few seconds: the server checks the length again after processing.
 function readDuration(file: File): Promise<number> {
   return new Promise((resolve) => {
     const el = document.createElement("video");
+    const url = URL.createObjectURL(file);
+    const done = (seconds: number) => {
+      clearTimeout(timer);
+      URL.revokeObjectURL(url);
+      resolve(Number.isFinite(seconds) ? seconds : 0);
+    };
+    const timer = setTimeout(() => done(0), 4000);
     el.preload = "metadata";
-    el.onloadedmetadata = () => { URL.revokeObjectURL(el.src); resolve(el.duration); };
-    el.onerror = () => resolve(0); // unknown; the server checks again after processing
-    el.src = URL.createObjectURL(file);
+    el.muted = true;
+    el.playsInline = true;
+    el.onloadedmetadata = () => done(el.duration);
+    el.onerror = () => done(0);
+    el.src = url;
+    el.load();
   });
+}
+
+// Some phones hand over videos with no file type, so fall back to the file name.
+function isVideo(file: File) {
+  return file.type.startsWith("video/") || (!file.type && /\.(mp4|mov|m4v|webm|3gp)$/i.test(file.name));
 }
 
 export function UploadForm({ topics, initialFile = null }: { topics: Topic[]; initialFile?: File | null }) {
@@ -21,16 +38,28 @@ export function UploadForm({ topics, initialFile = null }: { topics: Topic[]; in
   const [progress, setProgress] = useState<number | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [videoId, setVideoId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    // Read the form now: after the first await, the browser event no longer points at it.
+    const form = new FormData(e.currentTarget);
     setMessage(null);
     if (!file) return setMessage("Choose a video first.");
-    if (!file.type.startsWith("video/")) return setMessage("That file isn't a video.");
+    if (!isVideo(file)) return setMessage("That file isn't a video.");
     if (file.size > MAX_BYTES) return setMessage("That file is too large.");
-    if ((await readDuration(file)) > MAX_SECONDS + 1) return setMessage("Videos can be up to 30 minutes long during the beta.");
+    setBusy(true);
+    try {
+      await start(form, file);
+    } catch {
+      setMessage("Something went wrong starting the upload. Check your connection and try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
-    const form = new FormData(e.currentTarget);
+  async function start(form: FormData, file: File) {
+    if ((await readDuration(file)) > MAX_SECONDS + 1) return setMessage("Videos can be up to 30 minutes long during the beta.");
     const topic = Number(form.get("topicId"));
     const res = await fetch("/api/uploads", {
       method: "POST",
@@ -95,7 +124,9 @@ export function UploadForm({ topics, initialFile = null }: { topics: Topic[]; in
           <div className="h-full bg-blue-600 transition-all" style={{ width: `${progress}%` }} />
         </div>
       ) : (
-        <button className="rounded-full bg-blue-600 py-3 font-semibold text-white">Publish</button>
+        <button disabled={busy} className="rounded-full bg-blue-600 py-3 font-semibold text-white disabled:opacity-60">
+          {busy ? "Starting upload…" : "Publish"}
+        </button>
       )}
       {message && <p role="alert" className="text-red-600">{message}</p>}
     </form>
