@@ -34,7 +34,7 @@ async function Conversation({ params }: { params: PageProps<"/messages/[id]">["p
 
   return (
     <>
-      <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-neutral-200 bg-white/90 px-4 py-3 backdrop-blur">
+      <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-neutral-200 bg-canvas/85 px-4 py-3 backdrop-blur">
         <Link href="/messages" aria-label="Back to messages">←</Link>
         <Link href={`/u/${other.handle}`} className="flex items-center gap-2">
           <Avatar profile={other} size={32} />

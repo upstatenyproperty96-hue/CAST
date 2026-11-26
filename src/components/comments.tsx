@@ -49,7 +49,7 @@ export async function Comments({ postId, postAuthorId }: { postId: string; postA
   );
 
   return (
-    <section className="mx-auto max-w-xl bg-white px-4 py-4 text-neutral-900">
+    <section id="comments" className="mx-auto max-w-xl scroll-mt-16 bg-canvas px-4 py-4 text-neutral-900">
       <h2 className="font-semibold">Comments</h2>
       {box() ?? <p className="mt-2 text-sm"><Link href="/login" className="text-blue-600">Sign in</Link> to comment.</p>}
       <ul className="mt-4 flex flex-col gap-4">

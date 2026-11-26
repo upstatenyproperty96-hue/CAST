@@ -8,7 +8,7 @@ export async function SaveToPlaylist({ videoId }: { videoId: string }) {
   type L = { id: string; title: string; playlist_items: { video_id: string }[] };
   const rows = (lists ?? []) as unknown as L[];
   return (
-    <details className="mx-auto max-w-xl bg-white px-4 py-3 text-neutral-900">
+    <details className="mx-auto max-w-xl bg-canvas px-4 py-3 text-neutral-900">
       <summary className="cursor-pointer font-semibold">Save to playlist</summary>
       <ul className="mt-2 flex flex-col gap-2">
         {rows.map((l) => {

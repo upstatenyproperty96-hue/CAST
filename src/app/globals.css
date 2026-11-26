@@ -1,9 +1,92 @@
 @import "tailwindcss";
 
+/*
+  Cast's look is dark and video-first. Rather than restyle every page, the theme
+  redefines Tailwind's palette: the neutral scale is flipped (neutral-900 is
+  near-white text, neutral-100 is a dark chip), "canvas" is the page background,
+  and blue is Cast's brand blue. Light tints (blue-50, green-50…) become dark
+  tints with light text shades, so existing banners and badges read correctly.
+*/
 @theme inline {
   --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+
+  --color-canvas: #07080a;
+  --color-raised: #101216;
+
+  --color-neutral-50: #0e1013;
+  --color-neutral-100: #17191e;
+  --color-neutral-200: #23262c;
+  --color-neutral-300: #30343b;
+  --color-neutral-400: #5d636d;
+  --color-neutral-500: #8a909a;
+  --color-neutral-600: #a6abb4;
+  --color-neutral-700: #c6cad1;
+  --color-neutral-800: #dde0e5;
+  --color-neutral-900: #f3f4f6;
+  --color-neutral-950: #ffffff;
+
+  --color-blue-50: #0d1a33;
+  --color-blue-100: #132449;
+  --color-blue-400: #7fb0ff;
+  --color-blue-500: #4f8fff;
+  --color-blue-600: #2f7bff;
+  --color-blue-700: #6ea2ff;
+  --color-blue-900: #d4e3ff;
+
+  --color-green-50: #0b1f15;
+  --color-green-100: #10301f;
+  --color-green-700: #4ade80;
+  --color-green-800: #6ee7a0;
+  --color-green-900: #c3f7d6;
+
+  --color-amber-50: #241a06;
+  --color-amber-900: #fde68a;
+
+  --color-red-100: #3a1214;
+  --color-red-300: #6b2226;
+  --color-red-600: #f0484f;
+  --color-red-700: #ff8a8f;
+  --color-red-800: #ffb3b6;
+
+  --color-pink-500: #f91880;
+  --color-indigo-700: #6d3df5;
+}
+
+:root {
+  color-scheme: dark;
 }
 
 body {
   font-family: var(--font-sans);
+}
+
+/* Brand gradient for primary buttons and accents. */
+.bg-brand {
+  background-image: linear-gradient(135deg, #2f7bff 0%, #7b4dff 100%);
+}
+.text-brand {
+  background-image: linear-gradient(135deg, #5b9bff 0%, #a27bff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+input, textarea, select {
+  background-color: var(--color-neutral-50);
+  color: var(--color-neutral-900);
+}
+input::placeholder, textarea::placeholder {
+  color: var(--color-neutral-400);
+}
+input[type="checkbox"], input[type="radio"] {
+  accent-color: #2f7bff;
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
 }

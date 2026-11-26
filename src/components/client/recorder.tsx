@@ -120,10 +120,10 @@ export function Recorder({ topics }: { topics: Topic[] }) {
   const select = "rounded-lg border border-neutral-300 px-2 py-1 text-sm";
   return (
     <div className="flex flex-col gap-4 md:flex-row">
-      <div className="relative flex-1 overflow-hidden rounded-2xl bg-neutral-900">
+      <div className="relative flex-1 overflow-hidden rounded-2xl bg-black">
         <video ref={preview} playsInline className="aspect-video w-full object-cover" />
         {state === "idle" && (
-          <button onClick={start} className="absolute inset-0 m-auto h-12 w-48 rounded-full bg-white font-semibold">Turn on camera</button>
+          <button onClick={start} className="absolute inset-0 m-auto h-12 w-48 rounded-full bg-neutral-900 font-semibold text-canvas">Turn on camera</button>
         )}
         {(state === "recording" || state === "paused") && (
           <span className="absolute left-3 top-3 rounded-full bg-red-600 px-3 py-1 text-sm font-semibold text-white">
@@ -155,7 +155,7 @@ export function Recorder({ topics }: { topics: Topic[] }) {
         {(state === "recording" || state === "paused") && (
           <>
             <button onClick={togglePause} className="rounded-full border border-neutral-300 py-3 font-semibold">{state === "paused" ? "Resume" : "Pause"}</button>
-            <button onClick={stop} className="rounded-full bg-neutral-900 py-3 font-semibold text-white">■ Stop</button>
+            <button onClick={stop} className="rounded-full bg-red-600 py-3 font-semibold text-white">■ Stop</button>
           </>
         )}
         {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
