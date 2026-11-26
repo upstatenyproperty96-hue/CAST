@@ -29,7 +29,7 @@ function Nav({ handle }: { handle?: string | null }) {
       <nav className="fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-xl items-center border-t border-neutral-200 bg-canvas/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden">
         {phone.slice(0, 2).map((i) => <Tab key={i.href} {...i} href={hrefFor(i.href)} active={i.match(path)} />)}
         <Link href="/studio" aria-label="Create" className="flex flex-1 justify-center py-2">
-          <span className="bg-brand flex h-10 w-14 items-center justify-center rounded-2xl text-white shadow-lg shadow-blue-600/30">
+          <span className="bg-brand flex h-10 w-14 items-center justify-center rounded-2xl text-white shadow-lg shadow-emerald-500/20">
             <Plus size={24} strokeWidth={2.5} />
           </span>
         </Link>
@@ -47,7 +47,7 @@ function Nav({ handle }: { handle?: string | null }) {
             </Link>
           );
         })}
-        <Link href="/studio" className="bg-brand mt-4 rounded-full py-3 text-center text-lg font-bold text-white shadow-lg shadow-blue-600/20 transition hover:brightness-110">
+        <Link href="/studio" className="bg-brand mt-4 rounded-full py-3 text-center text-lg font-bold text-white shadow-lg shadow-emerald-500/20 transition hover:brightness-110">
           Create
         </Link>
       </nav>

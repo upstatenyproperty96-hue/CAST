@@ -2,7 +2,7 @@ type P = { display_name: string; avatar_url: string | null } | null;
 
 // Initials fall back to a gradient picked from the name, so empty avatars don't all look the same.
 const gradients = [
-  "from-blue-500 to-indigo-700", "from-pink-500 to-orange-400", "from-emerald-400 to-cyan-600",
+  "from-indigo-500 to-violet-700", "from-pink-500 to-orange-400", "from-emerald-400 to-cyan-600",
   "from-violet-500 to-fuchsia-500", "from-amber-400 to-rose-500", "from-sky-400 to-blue-700",
 ];
 

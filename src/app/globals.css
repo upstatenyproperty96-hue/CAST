@@ -4,7 +4,7 @@
   Cast's look is dark and video-first. Rather than restyle every page, the theme
   redefines Tailwind's palette: the neutral scale is flipped (neutral-900 is
   near-white text, neutral-100 is a dark chip), "canvas" is the page background,
-  and blue is Cast's brand blue. Light tints (blue-50, green-50…) become dark
+  and the "blue" scale is Cast's brand green (the name is kept so existing classes still work). Light tints (blue-50, green-50…) become dark
   tints with light text shades, so existing banners and badges read correctly.
 */
 @theme inline {
@@ -25,13 +25,13 @@
   --color-neutral-900: #f3f4f6;
   --color-neutral-950: #ffffff;
 
-  --color-blue-50: #0d1a33;
-  --color-blue-100: #132449;
-  --color-blue-400: #7fb0ff;
-  --color-blue-500: #4f8fff;
-  --color-blue-600: #2f7bff;
-  --color-blue-700: #6ea2ff;
-  --color-blue-900: #d4e3ff;
+  --color-blue-50: #071f18;
+  --color-blue-100: #0b2e23;
+  --color-blue-400: #34d9a8;
+  --color-blue-500: #12b981;
+  --color-blue-600: #0c8f65;
+  --color-blue-700: #5eead0;
+  --color-blue-900: #c9fbe9;
 
   --color-green-50: #0b1f15;
   --color-green-100: #10301f;
@@ -62,10 +62,10 @@ body {
 
 /* Brand gradient for primary buttons and accents. */
 .bg-brand {
-  background-image: linear-gradient(135deg, #2f7bff 0%, #7b4dff 100%);
+  background-image: linear-gradient(135deg, #10a875 0%, #0b7f6e 100%);
 }
 .text-brand {
-  background-image: linear-gradient(135deg, #5b9bff 0%, #a27bff 100%);
+  background-image: linear-gradient(135deg, #34f5c5 0%, #12b981 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -79,7 +79,7 @@ input::placeholder, textarea::placeholder {
   color: var(--color-neutral-400);
 }
 input[type="checkbox"], input[type="radio"] {
-  accent-color: #2f7bff;
+  accent-color: #12b981;
 }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
