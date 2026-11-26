@@ -8,15 +8,15 @@ export const metadata: Metadata = {
   title: "Cast",
   description: "Video-first. Create, share, and grow on Cast.",
   manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, title: "Cast", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "Cast", statusBarStyle: "black-translucent" },
 };
 
-export const viewport: Viewport = { themeColor: "#2563eb", width: "device-width", initialScale: 1, viewportFit: "cover" };
+export const viewport: Viewport = { themeColor: "#07080a", width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${geist.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col bg-white text-neutral-900">{children}</body>
+      <body className="flex min-h-full flex-col bg-canvas text-neutral-900">{children}</body>
     </html>
   );
 }

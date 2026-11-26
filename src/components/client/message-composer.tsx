@@ -8,7 +8,7 @@ export function MessageComposer({ conversationId }: { conversationId: string }) 
   const form = useRef<HTMLFormElement>(null);
   useEffect(() => { if (!pending && !state?.error) form.current?.reset(); }, [pending, state]);
   return (
-    <form ref={form} action={action} className="sticky bottom-0 border-t border-neutral-200 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+    <form ref={form} action={action} className="sticky bottom-0 border-t border-neutral-200 bg-canvas p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
       {state?.error && <p className="mb-2 text-sm text-red-600">{state.error}</p>}
       <div className="flex gap-2">
         <input type="hidden" name="conversationId" value={conversationId} />

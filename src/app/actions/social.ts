@@ -1,5 +1,6 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getUser } from "@/lib/supabase/server";
 
@@ -31,6 +32,31 @@ export async function toggleReaction(formData: FormData) {
     await supabase.from("reactions").insert({ user_id: user.id, post_id: postId, kind });
   }
   revalidatePath("/v/[id]", "page");
+  revalidatePath("/post/[id]", "page");
+  revalidatePath("/");
+}
+
+const quoteSchema = z.object({ postId: z.uuid(), body: z.string().trim().min(1, "Say something about it.").max(1000) });
+
+// A quote post: your words on top of someone else's post. Row Level Security checks you can see it.
+export async function quotePost(_: { error?: string } | undefined, formData: FormData) {
+  const { supabase, user } = await getUser();
+  if (!user) redirect("/login");
+  const parsed = quoteSchema.safeParse({ postId: formData.get("postId"), body: formData.get("body") });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check your post." };
+  const { data, error } = await supabase.from("posts")
+    .insert({ author_id: user.id, body: parsed.data.body, repost_of_id: parsed.data.postId }).select("id").single();
+  if (error || !data) return { error: "Couldn't post that. Try again." };
+  revalidatePath("/");
+  redirect(`/post/${data.id}`);
+}
+
+export async function deletePost(formData: FormData) {
+  const { supabase, user } = await getUser();
+  if (!user) return;
+  await supabase.from("posts").delete().eq("id", id.parse(formData.get("postId"))).eq("author_id", user.id);
+  revalidatePath("/");
+  redirect("/");
 }
 
 const commentSchema = z.object({
@@ -52,6 +78,7 @@ export async function addComment(formData: FormData) {
     post_id: parsed.data.postId, parent_id: parsed.data.parentId, body: parsed.data.body, author_id: user.id,
   });
   revalidatePath("/v/[id]", "page");
+  revalidatePath("/post/[id]", "page");
 }
 
 export async function deleteComment(formData: FormData) {
@@ -59,6 +86,7 @@ export async function deleteComment(formData: FormData) {
   if (!user) return;
   await supabase.from("comments").delete().eq("id", id.parse(formData.get("commentId")));
   revalidatePath("/v/[id]", "page");
+  revalidatePath("/post/[id]", "page");
 }
 
 const reportSchema = z.object({
