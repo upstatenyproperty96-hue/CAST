@@ -72,12 +72,12 @@ export function ClipEditor({ video }: { video: { id: string; title: string; play
             <p className="text-sm text-neutral-500">AI reads what&apos;s said in your video and picks the clips most likely to take off.</p>
           </div>
           <div className="flex items-center gap-2">
-            <select value={aiLength} onChange={(e) => setAiLength(e.target.value as typeof aiLength)} className="rounded-full border border-neutral-300 bg-transparent px-3 py-2 text-sm" aria-label="Clip length">
+            <select value={aiLength} onChange={(e) => setAiLength(e.target.value as typeof aiLength)} className="rounded-full border border-neutral-300 bg-raised px-3 py-2 text-sm" aria-label="Clip length">
               <option value="short">Shorts (15–60s)</option>
               <option value="medium">Highlights (1–3 min)</option>
               <option value="long">Segments (2–10 min)</option>
             </select>
-            <button onClick={findMoments} disabled={aiBusy} className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
+            <button onClick={findMoments} disabled={aiBusy} className="bg-brand rounded-full px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-60">
               {aiBusy ? "Watching your video…" : ideas ? "Try again" : "Find clips"}
             </button>
           </div>
@@ -87,7 +87,7 @@ export function ClipEditor({ video }: { video: { id: string; title: string; play
           <ul className="mt-3 flex flex-col gap-2">
             {ideas.map((c, i) => (
               <li key={i}>
-                <button onClick={() => loadIdea(i)} className={`w-full rounded-xl border p-3 text-left ${picked === i ? "border-blue-600 bg-blue-50/10" : "border-neutral-200"}`}>
+                <button onClick={() => loadIdea(i)} className={`w-full rounded-xl border p-3 text-left ${picked === i ? "border-blue-500 bg-blue-500/10" : "border-neutral-200"}`}>
                   <div className="flex items-center justify-between gap-2">
                     <p className="font-medium">{c.title}</p>
                     <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-700">{c.score}/100</span>
@@ -119,7 +119,7 @@ export function ClipEditor({ video }: { video: { id: string; title: string; play
       <p className="text-sm text-neutral-600">Clip length {fmt(end - start)} (up to 10 minutes)</p>
       <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} className="rounded-xl border border-neutral-300 px-3 py-2" placeholder="Clip title" />
       <textarea value={postText} onChange={(e) => setPostText(e.target.value)} maxLength={1000} rows={2} className="rounded-xl border border-neutral-300 px-3 py-2" placeholder="Say something to your followers (optional)" />
-      <button disabled={busy} onClick={save} className="rounded-full bg-blue-600 py-3 font-semibold text-white disabled:opacity-60">{busy ? "Creating…" : "Create clip"}</button>
+      <button disabled={busy} onClick={save} className="bg-brand rounded-full py-3 font-semibold text-white transition hover:brightness-110 disabled:opacity-60">{busy ? "Creating…" : "Create clip"}</button>
       {message && <p role="alert" className="text-red-600">{message}</p>}
     </div>
   );
