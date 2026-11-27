@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { z } from "zod";
 import { getUser } from "@/lib/supabase/server";
-import { POST_FIELDS, withViewerState, type FeedPost } from "@/lib/queries";
+import { POST_FIELDS, finishPosts, type FeedPost } from "@/lib/queries";
 import { PostCard } from "@/components/post-card";
 import { Comments } from "@/components/comments";
 import { BottomNav } from "@/components/bottom-nav";
@@ -31,7 +31,7 @@ async function Inner({ params }: PageProps<"/post/[id]">) {
   const { data } = await supabase.from("posts").select(`${POST_FIELDS}, author_id`).eq("id", id).maybeSingle();
   if (!data) notFound();
   const row = data as unknown as FeedPost & { author_id: string };
-  const [post] = user ? await withViewerState(supabase, user.id, [row]) : [row];
+  const [post] = await finishPosts(supabase, [row], user?.id);
   return (
     <>
       <PostCard post={post} signedIn={!!user} />
