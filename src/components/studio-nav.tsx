@@ -5,6 +5,7 @@ const items = [
   { href: "/studio", label: "Upload" },
   { href: "/studio/record", label: "Record" },
   { href: "/studio/live", label: "Go live" },
+  { href: "/studio/editor", label: "Editor" },
   { href: "/studio/library", label: "Library" },
   { href: "/studio/analytics", label: "Analytics" },
 ];

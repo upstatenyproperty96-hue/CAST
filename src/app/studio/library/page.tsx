@@ -4,6 +4,7 @@ import { getUser } from "@/lib/supabase/server";
 import { compact, duration } from "@/lib/format";
 import { StudioNav } from "@/components/studio-nav";
 import { ShareButton } from "@/components/client/share-button";
+import { createProject } from "@/app/actions/editor";
 
 export default function LibraryPage() {
   return (
@@ -39,6 +40,9 @@ async function List() {
           </Link>
           <div className="flex items-center gap-3">
           {v.status === "ready" && !v.source_video_id && <Link href={`/studio/clip/${v.id}`} className="text-sm text-blue-600">Clip</Link>}
+          {v.status === "ready" && (
+            <form action={createProject}><input type="hidden" name="videoId" value={v.id} /><button className="text-sm text-blue-600">Edit</button></form>
+          )}
           {v.status === "ready" && v.source_video_id && v.mux_playback_id && (
             <a href={downloadUrl(v.mux_playback_id, v.title)} className="text-sm text-blue-600" title="The file is ready a minute or two after the clip goes live.">Download</a>
           )}
