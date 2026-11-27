@@ -16,7 +16,10 @@ export default function NotificationsPage() {
     <div className="mx-auto w-full max-w-xl pb-20">
       <div className="flex items-center justify-between px-4 py-3">
         <h1 className="text-xl font-bold">Notifications</h1>
-        <form action={markNotificationsRead}><button className="text-sm text-blue-600">Mark all read</button></form>
+        <div className="flex items-center gap-4">
+          <Link href="/messages" className="text-sm font-medium">✉ Messages</Link>
+          <form action={markNotificationsRead}><button className="text-sm text-blue-600">Mark all read</button></form>
+        </div>
       </div>
       <Suspense fallback={<p className="p-6 text-neutral-500">Loading…</p>}><List /></Suspense>
       <BottomNav />

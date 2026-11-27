@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getUser } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { profileFlags } from "@/lib/access";
-import { mux } from "@/lib/mux";
+import { autoCaptions, captionLanguageOf, mux } from "@/lib/mux";
 import { newClipSchema } from "@/lib/validation";
 
 const CLIPS_PER_HOUR = 30;
@@ -43,9 +43,14 @@ export async function POST(request: NextRequest) {
 
   try {
     const asset = await mux().video.assets.create({
-      inputs: [{ url: `mux://assets/${source.mux_asset_id}`, start_time: input.start, end_time: input.end }],
+      inputs: [{
+        url: `mux://assets/${source.mux_asset_id}`, start_time: input.start, end_time: input.end,
+        generated_subtitles: autoCaptions(await captionLanguageOf(source.mux_asset_id)),
+      }],
       playback_policies: ["public"],
       max_resolution_tier: "1080p",
+      // A downloadable MP4 so creators can post the clip to other apps too.
+      static_renditions: [{ resolution: "highest" }],
       passthrough: clip.id,
     });
     await admin.from("videos").update({ mux_asset_id: asset.id }).eq("id", clip.id);
