@@ -11,7 +11,7 @@ import { ReportButton } from "@/components/client/report-button";
 import { signOut } from "@/app/login/actions";
 import { BadgeCheck, Mail } from "lucide-react";
 import { PostCard } from "@/components/post-card";
-import { POST_FIELDS, withViewerState, type FeedPost } from "@/lib/queries";
+import { POST_FIELDS, finishPosts, type FeedPost } from "@/lib/queries";
 
 type Tab = "posts" | "videos" | "reposts" | "likes" | "playlists";
 
@@ -159,8 +159,7 @@ async function TabContent({ tab, profileId, viewerId }: { tab: Tab; profileId: s
   if (tab === "posts") {
     const { data } = await supabase.from("posts").select(POST_FIELDS).eq("author_id", profileId)
       .order("created_at", { ascending: false }).limit(40);
-    let posts = (data ?? []) as unknown as FeedPost[];
-    if (viewerId) posts = await withViewerState(supabase, viewerId, posts);
+    const posts = await finishPosts(supabase, (data ?? []) as unknown as FeedPost[], viewerId);
     if (!posts.length) return <Empty text="No posts yet." />;
     return <>{posts.map((p) => <PostCard key={p.id} post={p} signedIn={!!viewerId} />)}</>;
   }
@@ -174,11 +173,10 @@ async function TabContent({ tab, profileId, viewerId }: { tab: Tab; profileId: s
     const { data } = await supabase.from("reactions")
       .select(`created_at, post:posts(${POST_FIELDS})`)
       .eq("user_id", profileId).eq("kind", kind).order("created_at", { ascending: false }).limit(40);
-    let posts = (data ?? []).flatMap((r) => {
+    const posts = await finishPosts(supabase, (data ?? []).flatMap((r) => {
       const p = (r as unknown as { post: FeedPost | null }).post;
       return p ? [p] : [];
-    });
-    if (viewerId) posts = await withViewerState(supabase, viewerId, posts);
+    }), viewerId);
     if (!posts.length) return <Empty text={tab === "reposts" ? "No reposts yet." : "No likes yet."} />;
     return <>{posts.map((p) => <PostCard key={p.id} post={p} signedIn={!!viewerId} />)}</>;
   }

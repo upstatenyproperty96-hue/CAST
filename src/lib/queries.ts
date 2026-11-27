@@ -18,8 +18,9 @@ export type FeedPost = {
   comment_count: number;
   author: Author;
   video: Video;
-  // Set when this post quotes another one.
-  quoted: QuotedPost | null;
+  // The post this one quotes, if any. Filled in by finishPosts.
+  repost_of_id?: string | null;
+  quoted?: QuotedPost | null;
   // Set when it's in the feed because someone the viewer follows reposted it.
   reposted_by?: { handle: string; display_name: string } | null;
   // Set when the feed item is a repost, so a post reposted twice still has a unique key.
@@ -31,9 +32,7 @@ export type FeedPost = {
 
 const AUTHOR = "author:profiles!posts_author_id_fkey(handle, display_name, avatar_url, is_verified)";
 const VIDEO = "video:videos(id, title, duration_s, aspect, mux_playback_id, thumbnail_time_s, source_video_id)";
-export const POST_FIELDS =
-  `id, body, created_at, like_count, repost_count, comment_count, ${AUTHOR}, ${VIDEO}, ` +
-  `quoted:posts!posts_repost_of_id_fkey(id, body, created_at, ${AUTHOR}, ${VIDEO})`;
+export const POST_FIELDS = `id, body, created_at, like_count, repost_count, comment_count, repost_of_id, ${AUTHOR}, ${VIDEO}`;
 
 export type FeedKind = "for-you" | "following" | "topic";
 
@@ -41,8 +40,7 @@ export type FeedKind = "for-you" | "following" | "topic";
 export async function getFeed(
   supabase: SupabaseClient, kind: FeedKind, opts: { userId?: string; topicSlug?: string } = {},
 ): Promise<FeedPost[]> {
-  const posts = await loadFeed(supabase, kind, opts);
-  return opts.userId ? withViewerState(supabase, opts.userId, posts) : posts;
+  return finishPosts(supabase, await loadFeed(supabase, kind, opts), opts.userId);
 }
 
 async function loadFeed(
@@ -93,11 +91,27 @@ async function loadFeed(
   return (data ?? []) as unknown as FeedPost[];
 }
 
-// Marks which posts the viewer already liked or reposted, so the buttons show it.
-export async function withViewerState(supabase: SupabaseClient, userId: string, posts: FeedPost[]) {
+// Adds what a list of posts needs before it is shown: the post each quote refers to, and
+// (for a signed-in viewer) which posts they already liked or reposted.
+// Quoted posts are loaded with a second query because posts point at posts, and the API
+// can't tell which direction of that link an inline lookup means.
+export async function finishPosts(supabase: SupabaseClient, posts: FeedPost[], userId?: string | null): Promise<FeedPost[]> {
   if (!posts.length) return posts;
-  const { data } = await supabase.from("reactions").select("post_id, kind")
-    .eq("user_id", userId).in("post_id", [...new Set(posts.map((p) => p.id))]);
-  const mine = new Set((data ?? []).map((r) => `${r.kind}:${r.post_id}`));
-  return posts.map((p) => ({ ...p, liked: mine.has(`like:${p.id}`), reposted: mine.has(`repost:${p.id}`) }));
+  const quotedIds = [...new Set(posts.flatMap((p) => p.repost_of_id ?? []))];
+  const [quoted, mine] = await Promise.all([
+    quotedIds.length
+      ? supabase.from("posts").select(`id, body, created_at, ${AUTHOR}, ${VIDEO}`).in("id", quotedIds)
+      : Promise.resolve({ data: [] }),
+    userId
+      ? supabase.from("reactions").select("post_id, kind").eq("user_id", userId).in("post_id", [...new Set(posts.map((p) => p.id))])
+      : Promise.resolve({ data: [] }),
+  ]);
+  const byId = new Map(((quoted.data ?? []) as unknown as QuotedPost[]).map((q) => [q.id, q]));
+  const reacted = new Set(((mine.data ?? []) as { post_id: string; kind: string }[]).map((r) => `${r.kind}:${r.post_id}`));
+  return posts.map((p) => ({
+    ...p,
+    quoted: p.repost_of_id ? byId.get(p.repost_of_id) ?? null : null,
+    liked: reacted.has(`like:${p.id}`),
+    reposted: reacted.has(`repost:${p.id}`),
+  }));
 }
